@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Галерея</title>
+    <title>AR Галерея - Естественный размер</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -11,124 +11,75 @@
             margin: 0; 
             padding: 0; 
             overflow: hidden; 
-            font-family: Arial, sans-serif;
-        }
-        .loading { 
-            position: absolute; 
-            top: 50%; 
-            left: 50%; 
-            transform: translate(-50%, -50%); 
-            color: white; 
-            z-index: 1000;
-            background: rgba(0,0,0,0.7);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="loading" id="loading">Загрузка контента...</div>
-    
     <a-scene 
         embedded 
         arjs="sourceType: webcam; debugUIEnabled: false;"
-        renderer="logarithmicDepthBuffer: true; colorManagement: true;"
-        vr-mode-ui="enabled: false"
+        renderer="logarithmicDepthBuffer: true;"
     >
-        <!-- Маркер с настройками -->
+        <!-- Маркер с фиксированным размером -->
         <a-marker 
             type="pattern" 
             url="https://raw.githubusercontent.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/trex-pattern/pat-ttrex.patt"
-            emitevents="true"
-            cursor="fuse: false;"
-            id="marker"
+            size="0.5"  <!-- Фиксированный размер маркера в метрах -->
         >
-            <!-- Основной контейнер с смещением от маркера -->
-            <a-entity 
-                id="content-container"
-                position="0 0.5 0"
-                scale="0.8 0.8 0.8"
-            ></a-entity>
+            <a-entity id="content-container"></a-entity>
         </a-marker>
         
-        <!-- Камера с увеличенным FOV и ограничениями -->
+        <!-- Камера с фиксированными параметрами -->
         <a-entity 
-            camera="fov: 90; zoom: 1;"
+            camera="fov: 60; zoom: 1; near: 0.01; far: 100;"
             arjs-marker-camera
             look-controls="enabled: false"
-            position="0 0 0"
         ></a-entity>
     </a-scene>
 
     <script>
-        // Загружаем данные из JSON файла
-        async function loadContent() {
-            try {
-                const response = await fetch('./data.json');
-                const data = await response.json();
-                return data.content;
-            } catch (error) {
-                console.error('Ошибка загрузки данных:', error);
-                return [];
+        // Данные с естественными размерами
+        const contentData = [
+            {
+                imageUrl: "images/photo1.jpg",
+                title: "Горный пейзаж",
+                description: "Красивые горы на закате",
+                // Позиция относительно маркера (в метрах)
+                position: "0 0.3 0",
+                // Размер в метрах (A4 ~ 0.21x0.297)
+                scale: "0.21 0.297 1"
+            },
+            {
+                imageUrl: "images/photo2.jpg", 
+                title: "Океан",
+                description: "Кристально чистая вода",
+                position: "0 -0.15 0",
+                scale: "0.21 0.297 1"
             }
-        }
+        ];
 
-        // Создаем AR контент
-        async function createARContent() {
-            const content = await loadContent();
+        document.querySelector('a-scene').addEventListener('loaded', function() {
             const container = document.getElementById('content-container');
             
-            if (content.length === 0) {
-                document.getElementById('loading').innerHTML = 'Ошибка загрузки данных';
-                return;
-            }
-            
-            content.forEach((item, index) => {
-                // Увеличиваем расстояние между элементами и от камеры
-                const position = item.position || `0 ${1.8 - (index * 1.5)} 0.5`;
-                const scale = item.scale || '0.6 0.45 1';
+            contentData.forEach((item, index) => {
+                // Фотография (плоскость)
+                const photo = document.createElement('a-plane');
+                photo.setAttribute('src', item.imageUrl);
+                photo.setAttribute('position', item.position);
+                photo.setAttribute('scale', item.scale);
+                photo.setAttribute('material', 'shader: flat;');
                 
-                // Создаем плоскость с фотографией
-                const photoPlane = document.createElement('a-plane');
-                photoPlane.setAttribute('src', item.imageUrl);
-                photoPlane.setAttribute('position', position);
-                photoPlane.setAttribute('scale', scale);
-                photoPlane.setAttribute('class', 'clickable');
+                // Текст под фотографией
+                const text = document.createElement('a-text');
+                text.setAttribute('value', item.title);
+                text.setAttribute('position', `${item.position.split(' ')[0]} ${parseFloat(item.position.split(' ')[1]) - 0.2} ${item.position.split(' ')[2]}`);
+                text.setAttribute('align', 'center');
+                text.setAttribute('color', '#000000');
+                text.setAttribute('width', '0.4');
                 
-                // Создаем текст под фотографией
-                const textEntity = document.createElement('a-text');
-                textEntity.setAttribute('value', `${item.title}\n${item.description}`);
-                
-                // Позиция текста - под фотографией с увеличенным расстоянием
-                const posArray = position.split(' ').map(Number);
-                const textPosition = `${posArray[0]} ${posArray[1] - 0.45} ${posArray[2]}`;
-                
-                textEntity.setAttribute('position', textPosition);
-                textEntity.setAttribute('align', 'center');
-                textEntity.setAttribute('color', '#FFFFFF');
-                textEntity.setAttribute('width', '2.5');
-                textEntity.setAttribute('wrap-count', '20');
-                textEntity.setAttribute('scale', '0.8 0.8 1');
-                
-                container.appendChild(photoPlane);
-                container.appendChild(textEntity);
+                container.appendChild(photo);
+                container.appendChild(text);
             });
-            
-            // Скрываем индикатор загрузки
-            document.getElementById('loading').style.display = 'none';
-        }
-
-        // Ждем загрузки A-Frame
-        document.addEventListener('DOMContentLoaded', function() {
-            const scene = document.querySelector('a-scene');
-            
-            scene.addEventListener('loaded', function() {
-                createARContent();
-            });
-        });
-
-       
         });
     </script>
 </body>
