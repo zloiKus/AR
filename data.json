@@ -1,0 +1,25 @@
+{
+    "content": [
+        {
+            "id": 1,
+            "imageUrl": "images/photo1.jpg",
+            "title": "Горный пейзаж",
+            "description": "Красивые горы на закате",
+            "scale": "1 0.75 1"
+        },
+        {
+            "id": 2,
+            "imageUrl": "images/photo2.jpg", 
+            "title": "Океан",
+            "description": "Кристально чистая вода",
+            "scale": "1 0.75 1"
+        },
+        {
+            "id": 3,
+            "imageUrl": "images/photo3.jpg",
+            "title": "Лес",
+            "description": "Зеленый лес с высокими деревьями",
+            "scale": "1 0.75 1"
+        }
+    ]
+}
