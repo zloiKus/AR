@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Галерея</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            font-family: Arial, sans-serif;
+        }
+        .loading { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            color: white; 
+            z-index: 1000;
+            background: rgba(0,0,0,0.7);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .instruction {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            z-index: 1000;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="instruction" id="instruction">
+        📱 Наведите камеру на маркер Hiro
+    </div>
+    
+    <div class="loading" id="loading">Загрузка контента...</div>
+    
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+        <!-- Маркер Hiro -->
+        <a-marker type="pattern" url="https://raw.githubusercontent.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/trex-pattern/pat-ttrex.patt">
+            <a-entity id="content-container"></a-entity>
+        </a-marker>
+        
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+        // Загружаем данные из JSON файла
+        async function loadContent() {
+            try {
+                const response = await fetch('./data.json');
+                const data = await response.json();
+                return data.content;
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+                return [];
+            }
+        }
+
+        // Создаем AR контент
+        async function createARContent() {
+            const content = await loadContent();
+            const container = document.getElementById('content-container');
+            
+            if (content.length === 0) {
+                document.getElementById('loading').innerHTML = 'Ошибка загрузки данных';
+                return;
+            }
+            
+            content.forEach((item, index) => {
+                // Рассчитываем позицию для каждого элемента
+                const yPosition = 1.5 - (index * 1.2); // Располагаем элементы вертикально
+                
+                // Создаем плоскость с фотографией
+                const photoPlane = document.createElement('a-plane');
+                photoPlane.setAttribute('src', item.imageUrl);
+                photoPlane.setAttribute('position', `0 ${yPosition} 0`);
+                photoPlane.setAttribute('scale', item.scale || '1 0.75 1');
+                photoPlane.setAttribute('class', 'clickable');
+                
+                // Создаем текст под фотографией
+                const textEntity = document.createElement('a-text');
+                textEntity.setAttribute('value', `${item.title}\n${item.description}`);
+                textEntity.setAttribute('position', `0 ${yPosition - 0.8} 0`);
+                textEntity.setAttribute('align', 'center');
+                textEntity.setAttribute('color', '#FFFFFF');
+                textEntity.setAttribute('width', '2.5');
+                textEntity.setAttribute('wrap-count', '20');
+                
+                container.appendChild(photoPlane);
+                container.appendChild(textEntity);
+            });
+            
+            // Скрываем индикатор загрузки
+            document.getElementById('loading').style.display = 'none';
+            
+            // Скрываем инструкцию через 5 секунд
+            setTimeout(() => {
+                document.getElementById('instruction').style.display = 'none';
+            }, 5000);
+        }
+
+        // Ждем загрузки A-Frame
+        document.addEventListener('DOMContentLoaded', function() {
+            const scene = document.querySelector('a-scene');
+            
+            scene.addEventListener('loaded', function() {
+                createARContent();
+            });
+        });
+    </script>
+</body>
+</html>
