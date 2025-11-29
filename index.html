@@ -47,11 +47,23 @@
     
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
         <!-- Маркер Hiro -->
-        <a-marker type="pattern" url="https://raw.githubusercontent.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/trex-pattern/pat-ttrex.patt">
+          <a-marker 
+            type="pattern" 
+            url="https://raw.githubusercontent.com/AR-js-org/AR.js/master/aframe/examples/image-tracking/nft/trex/trex-pattern/pat-ttrex.patt"
+            emitevents="true"
+            cursor="fuse: false;"
+            id="marker"
+        >
             <a-entity id="content-container"></a-entity>
         </a-marker>
         
-        <a-entity camera></a-entity>
+        <!-- Камера с настройками -->
+        <a-entity 
+            camera="fov: 80; zoom: 1;"
+            arjs-marker-camera
+            look-controls="enabled: false"
+        ></a-entity>
+        
     </a-scene>
 
     <script>
