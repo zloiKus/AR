@@ -128,13 +128,7 @@
             });
         });
 
-        // Обработка изменения размера окна
-        window.addEventListener('resize', function() {
-            const camera = document.querySelector('[camera]');
-            if (camera) {
-                camera.components.camera.camera.aspect = window.innerWidth / window.innerHeight;
-                camera.components.camera.camera.updateProjectionMatrix();
-            }
+       
         });
     </script>
 </body>
